@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Actuarial Guessing Dept 精選估歌部</title>
+    <style>
+        :root { --pricing-pink: #ff007b; --actuary-blue: #00e5ff; --bg: #0d0d0d; }
+        body { font-family: sans-serif; background-color: var(--bg); color: white; text-align: center; padding: 5px; margin: 0; overflow-x: hidden; }
+        
+        .screen { display: none; padding: 5px; min-height: 90vh; }
+        .active { display: block; }
+
+        .main-header { color: white; font-size: 22px; margin-top: 15px; margin-bottom: 15px; font-weight: bold; width: 100%; }
+
+        /* Scoreboard */
+        .timer-box { font-size: 32px; color: #666; font-family: monospace; font-weight: bold; width: 80px; display: flex; align-items: center; justify-content: center; }
+        .timer-box.danger { color: #ff4757; text-shadow: 0 0 10px #ff4757; font-size: 48px; }
+        .container { display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 10px; }
+        .team-box { background: #1a1a1a; padding: 10px; border-radius: 15px; width: 35%; border: 1px solid #333; }
+        .team-name { font-size: 14px; margin-bottom: 5px; outline: none; border-bottom: 1px dashed #444; }
+        .score { font-size: 45px; font-weight: bold; margin: 2px 0; }
+        
+        button { cursor: pointer; border: none; border-radius: 8px; font-weight: bold; transition: 0.2s; }
+        .btn-plus { background: var(--pricing-pink); color: white; width: 60px; height: 40px; font-size: 24px; }
+        .btn-minus { background: #333; color: #888; width: 40px; height: 30px; font-size: 12px; margin-top: 4px; }
+
+        /* Game Areas */
+        .game-area { position: relative; width: 100%; max-width: 400px; aspect-ratio: 16/9; margin: 10px auto; border-radius: 12px; overflow: hidden; border: 1px solid #444; background: #000; }
+        #black-shield { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; }
+        #status-msg { font-size: 22px; color: #ff4757; font-weight: bold; }
+        #player-target { width: 100%; height: 100%; }
+        .card { background: white; color: #333; padding: 15px; border-radius: 15px; max-width: 400px; margin: 10px auto; }
+        
+        .main-btn { background: #e74c3c; color: white; width: 100%; padding: 15px; font-size: 18px; margin-bottom: 10px; border-radius: 12px; }
+        .sub-btn { background: #555; color: white; flex: 1; padding: 10px; font-size: 12px; }
+        .rev-btn { background: #28a745; color: white; flex: 1; padding: 10px; font-size: 12px; }
+        .ans-box { background: #f0f0f0; border: 1px solid #ddd; margin-top: 5px; padding: 8px; border-radius: 8px; font-weight: bold; visibility: hidden; min-height: 20px; font-size: 14px; }
+        #box-lyrics { color: #e74c3c; min-height: 85px; display: flex; align-items: center; justify-content: center; font-size: 20px; padding: 15px; border: 2px solid #ff4757; line-height: 1.4; }
+        
+        .small-round-btn { padding: 6px 12px; font-size: 13px; border-radius: 6px; margin: 4px; }
+        .back-btn-r1 { background: #444; color: white; width: 100%; padding: 10px; border-radius: 12px; margin-top: 10px; font-size: 14px; }
+
+        /* Creator Studio Styles */
+        .admin-input { width: 96%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: 1px solid #333; background: #222; color: white; font-size: 14px; }
+        .home-card { background: #1a1a1a; padding: 25px; border-radius: 20px; border: 1px solid #333; margin: 15px auto; max-width: 350px; cursor: pointer; }
+        .tab-btn { background: #333; color: #888; padding: 10px; flex: 1; border-radius: 0; font-size: 12px; border: 1px solid #444;}
+        .tab-active { background: var(--actuary-blue); color: black; }
+        #admin-test-area { height: 0; overflow: hidden; } /* Hidden player for testing in admin */
+    </style>
+</head>
+<body>
+
+    <div id="home-screen" class="screen active">
+        <div class="main-header" style="margin-top: 50px; font-size: 26px; color: var(--actuary-blue);">
+            Actuarial Guessing Dept <br> 精選估歌部
+        </div>
+        <div class="home-card" onclick="showRules(1)"><h2>Round 1</h2><p>估歌仔</p></div>
+        <div class="home-card" onclick="showRules(2)"><h2>Round 2</h2><p>情境題</p></div>
+        <div class="home-card" onclick="showRules(3)"><h2>Round 3</h2><p>唱 Key Word</p></div>
+        <button onclick="showAdmin()" style="background:#333; color:#aaa; margin-top:20px; padding:12px 20px; border-radius:30px; border:1px solid #444;">⚙️ Creator Studio</button>
+    </div>
+
+    <div id="admin-screen" class="screen">
+        <div id="admin-test-area"><div id="admin-player"></div></div>
+        <div style="background:#1a1a1a; padding:15px; border-radius:20px; margin:5px auto; max-width:420px; border:2px solid var(--actuary-blue); min-height: 85vh;">
+            <h2 style="color:var(--actuary-blue); margin-bottom:10px;">Creator Studio</h2>
+            
+            <div style="display:flex; margin-bottom:15px; border-radius:10px; overflow:hidden;">
+                <button id="tab1" class="tab-btn tab-active" onclick="switchAdminTab(1)">R1: Songs</button>
+                <button id="tab2" class="tab-btn" onclick="switchAdminTab(2)">R2: Topics</button>
+                <button id="tab3" class="tab-btn" onclick="switchAdminTab(3)">R3: Keys</button>
+            </div>
+
+            <div id="admin-tab-1">
+                <div style="text-align: left; background:#252525; padding:10px; border-radius:10px; margin-bottom:15px;">
+                    <h4 style="color:var(--pricing-pink); margin-top:0;">Song Data Editor</h4>
+                    <input id="in-id" class="admin-input" placeholder="YouTube Link or ID">
+                    <div style="display:flex; gap:5px;">
+                        <input id="in-start" type="number" class="admin-input" style="width:48%" placeholder="Start (sec)">
+                        <input id="in-dur" type="number" class="admin-input" style="width:48%" placeholder="Dur (sec)">
+                    </div>
+                    <div style="display:flex; gap:5px;">
+                        <input id="in-singer" class="admin-input" style="width:48%" placeholder="Singer">
+                        <input id="in-title" class="admin-input" style="width:48%" placeholder="Song Title">
+                    </div>
+                    <input id="in-lyrics" class="admin-input" placeholder="Next Line (use 🔴🔴)">
+                    <input id="in-ans" class="admin-input" placeholder="Full Answer Line">
+                    
+                    <div style="display:flex; gap:5px;">
+                        <button id="btn-add-song" class="main-btn" style="background:var(--pricing-pink); font-size:14px; padding:10px;" onclick="addOrUpdateSong()">ADD TO LIST</button>
+                        <button id="btn-cancel-edit" class="main-btn" style="background:#555; font-size:14px; padding:10px; display:none;" onclick="cancelEdit()">CANCEL</button>
+                    </div>
+                </div>
+                <h4 style="color:#666; margin:5px 0;">Session Playlist (<span id="song-count">0</span>)</h4>
+                <div id="song-list-display" style="text-align:left; font-size:11px; background:#000; padding:10px; border-radius:10px; max-height:220px; overflow-y:auto;"></div>
+            </div>
+
+            <div id="admin-tab-2" style="display:none;">
+                <h4 style="color:var(--pricing-pink)">R2 Topics</h4>
+                <div style="display:flex; gap:5px; margin-bottom:10px;">
+                    <input id="in-topic" class="admin-input" placeholder="Theme Name..." style="margin-bottom:0">
+                    <button class="small-round-btn" style="background:var(--actuary-blue); color:black;" onclick="addCustomTopic()">ADD</button>
+                </div>
+                <div id="topic-list-display" style="text-align:left; font-size:12px; background:#000; padding:10px; border-radius:10px; height:300px; overflow-y:auto;"></div>
+            </div>
+
+            <div id="admin-tab-3" style="display:none;">
+                <h4 style="color:var(--pricing-pink)">R3 Keywords</h4>
+                <div style="display:flex; gap:5px; margin-bottom:10px;">
+                    <input id="in-key" class="admin-input" placeholder="Word..." style="margin-bottom:0">
+                    <button class="small-round-btn" style="background:var(--actuary-blue); color:black;" onclick="addCustomKeyword()">ADD</button>
+                </div>
+                <div id="key-list-display" style="text-align:left; font-size:12px; background:#000; padding:10px; border-radius:10px; height:300px; overflow-y:auto;"></div>
+            </div>
+
+            <div style="display:flex; gap:5px; margin-top:15px;">
+                <button class="small-round-btn" style="background:#800; color:white; flex:1;" onclick="resetToDefault()">RESET ALL</button>
+                <button class="small-round-btn" style="background:#444; color:white; flex:1;" onclick="exportPlaylist()">EXPORT</button>
+                <button class="small-round-btn" style="background:#444; color:white; flex:1;" onclick="triggerImport()">IMPORT</button>
+                <input type="file" id="import-file" style="display:none" onchange="importPlaylist(event)">
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="back-btn-r1" style="background:#28a745; flex:2;" onclick="saveAndExit()">SAVE & APPLY</button>
+                <button class="back-btn-r1" style="background:#c0392b; flex:1;" onclick="discardAndExit()">DISCARD</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="rules-overlay" class="screen">
+        <div style="background:#1a1a1a; padding:30px; border-radius:20px; margin:20px auto; max-width:350px; border:2px solid var(--pricing-pink);">
+            <h2 id="rule-title" style="color:var(--pricing-pink)">規則</h2>
+            <div id="rule-content" style="text-align:left; line-height:1.8; color:#ccc; margin-bottom:25px; font-size: 15px;"></div>
+            <button class="main-btn" onclick="startGame()" style="background:var(--pricing-pink); border:2px solid white;">PRESS START</button>
+        </div>
+    </div>
+
+    <div id="game-ui" style="display:none;">
+        <div class="main-header">Actuarial Guessing Dept</div>
+        <div class="container">
+            <div class="team-box" style="border-color: var(--pricing-pink);">
+                <div class="team-name" contenteditable="true" style="color: var(--pricing-pink);">TEAM A</div>
+                <div id="scoreA" class="score" style="color: var(--pricing-pink);">0</div>
+                <button class="btn-plus" onclick="changeScore('scoreA', 1)">+</button><br>
+                <button class="btn-minus" onclick="changeScore('scoreA', -1)">-1</button>
+            </div>
+            <div class="timer-box" id="timer">VS</div>
+            <div class="team-box" style="border-color: var(--actuary-blue);">
+                <div class="team-name" contenteditable="true" style="color: var(--actuary-blue);">TEAM B</div>
+                <div id="scoreB" class="score" style="color: var(--actuary-blue);">0</div>
+                <button class="btn-plus" onclick="changeScore('scoreB', 1)" style="background: var(--actuary-blue);">+</button><br>
+                <button class="btn-minus" onclick="changeScore('scoreB', -1)">-1</button>
+            </div>
+        </div>
+
+        <div id="round1-content" style="display:none;">
+            <div class="game-area">
+                <div id="black-shield"><div id="status-msg">Loading...</div></div>
+                <div id="player-target"></div>
+            </div>
+            <div class="card">
+                <button class="main-btn" onclick="syncStart()">⏳ Click to Start</button>
+                <div style="display:flex; gap:5px; margin-bottom:10px;">
+                    <button class="sub-btn" onclick="replayLast()">🔄 Replay Last 5s</button>
+                    <button class="sub-btn" style="background:#333;" onclick="stopSong()">⏹ STOP</button>
+                </div>
+                <div id="blanks" style="display:none; margin:15px 0;">
+                    <div id="red-dots-line" style="color:#28a745; font-size:18px; font-weight:bold;"></div>
+                </div>
+                <div style="display:flex; justify-content:space-between; gap:5px;">
+                    <button class="rev-btn" onclick="rev('singer')">1. 歌手</button>
+                    <button class="rev-btn" onclick="rev('title')">2. 歌名</button>
+                    <button class="rev-btn" onclick="rev('lyrics')">3. 下一句</button>
+                </div>
+                <div id="box-singer" class="ans-box">歌手: ---</div>
+                <div id="box-title" class="ans-box">歌名: ---</div>
+                <div id="box-lyrics" class="ans-box"></div>
+                <button class="main-btn" style="background:#000; margin-top:15px;" onclick="nextSong()">NEXT SONG ➔</button>
+                <button class="back-btn-r1" onclick="goHome()">BACK TO MENU</button>
+            </div>
+        </div>
+
+        <div id="generic-content" style="display:none;">
+            <div id="topic-text" style="font-size: 28px; color: var(--pricing-pink); font-weight: bold; margin: 40px 0; min-height: 100px; display: flex; align-items: center; justify-content: center; padding: 20px; border: 2px dashed #333; border-radius: 15px;"></div>
+            <div id="timer-display" style="font-size: 80px; font-family: monospace; color: #ff4757; margin: 20px 0; font-weight: bold;">10</div>
+            <div>
+                <button class="small-round-btn" style="background:#28a745; color:white;" onclick="start10sTimer()">START TIMER</button>
+                <button class="small-round-btn" style="background:#555; color:white;" onclick="nextTopic()">NEXT ITEM</button>
+            </div>
+            <button class="small-round-btn" style="background:#444; color:white; margin-top:50px; opacity: 0.7;" onclick="goHome()">BACK TO MENU</button>
+        </div>
+    </div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        let player, adminPlayer, logicInt, idx = 0, currentRound = 0, topicIdx = 0;
+        let editIndex = -1;
+
+        const DEFAULT_SONGS = [
+            {id:"URUIcYDq3_I", s:145, d:15, singer:"陳奕迅", title:"陀飛輪", lyrics:"秒速🔴🔴🔴🔴 而皮膚🔴🔴🔴🔴🔴", ans:"秒速捉得緊了 而皮膚竟偷偷鬆了"},
+            {id:"scHDBckJXv4", s:135, d:15, singer:"古巨基", title:"必殺技", lyrics:"求你🔴🔴 錯過我 🔴🔴🔴🔴🔴", ans:"求你別要 錯過我 其實我也不錯"},
+            {id:"5wJFZBulzsI", s:131, d:14, singer:"張敬軒", title:"櫻花樹下", lyrics:"人置身🔴🔴🔴🔴 投入🔴🔴🔴🔴🔴", ans:"人置身這大時代 投入幾番競技賽"},
+            {id:"E9BgBB0JQ8E", s:128, d:20, singer:"側田", title:"命硬", lyrics:"等🔴🔴🔴🔴🔴枯死", ans:"等荊棘滿途全枯死"},
+            {id:"WJaufugjeSQ", s:86, d:26, singer:"楊千嬅", title:"小城大事", lyrics:"你何以🔴🔴🔴🔴🔴🔴", ans:"你何以雙眼好像流淚"},
+            {id:"cPKfUWDmNbo", s:62, d:20, singer:"Twins", title:"下一站天后", lyrics:"難及🔴🔴🔴🔴🔴🔴 🔴🔴🔴🔴地唱", ans:"難及他在我身邊 貼切地唱"},
+            {id:"onZjMJq4LhU", s:98, d:20, singer:"容祖兒", title:"我的驕傲", lyrics:"因你🔴🔴 🔴🔴🔴", ans:"因你創更愉快"},
+            {id:"v04DzjzSb5w", s:64, d:14, singer:"盧巧音", title:"好心分手", lyrics:"若注定🔴🔴🔴🔴🔴 不如🔴🔴🔴🔴割破", ans:"若注定有一點苦楚 不如自己親手割破"},
+            {id:"qu_FSptjRic", s:68, d:20, singer:"Beyond", title:"海闊天空", lyrics:"哪🔴🔴🔴🔴🔴你🔴🔴我", ans:"哪會怕有一天只你共我"},
+            {id:"8dqdPHuFgfI", s:147, d:14, singer:"蘇永康", title:"越吻越傷心", lyrics:"何必🔴🔴 🔴🔴", ans:"何必追問遠近"},
+            {id:"JNocLV9gXuw", s:66, d:11, singer:"周國賢", title:"地下街", lyrics:"🔴🔴們🔴🔴地🔴🔴", ans:"途人們相繼地回家"},
+            {id:"UlkToY0QfaU", s:38, d:20, singer:"麥浚龍", title:"有人", lyrics:"如🔴🔴🔴🔴🔴🔴到", ans:"如沒有信心接受到"},
+            {id:"VuvpCOL1hLQ", s:57, d:21, singer:"謝霆鋒", title:"壞習慣", lyrics:"而陽光🔴🔴 🔴🔴🔴🔴🔴 留低一把雨傘", ans:"而陽光一出 竟一去不返 留低一把雨傘"},
+            {id:"yd_t2VRZMhU", s:1, d:25, singer:"鄭中基", title:"有種", lyrics:"未未必要做🔴🔴 稱霸🔴🔴 是我🔴🔴🔴", ans:"未必要做強者 稱霸最強 是我不怕痛"},
+            {id:"IDywqSyQ3Mc", s:154, d:16, singer:"鄧麗欣", title:"電燈膽", lyrics:"要🔴🔴🔴又折🔴", ans:"要走的一剎又折返"},
+            {id:"CJ4fKSmOf3U", s:48, d:18, singer:"蘇永康", title:"那誰", lyrics:"淚疊淚 🔴🔴🔴 漸莫辨 🔴🔴", ans:"淚叠淚 風一吹 漸莫辨 那~誰"},
+            {id:"1WLFhjQ0cDc", s:66, d:26, singer:"王傑", title:"不浪漫罪名", lyrics:"從來🔴🔴🔴🔴🔴🔴動聽", ans:"從來未察覺我語氣動聽"},
+            {id:"f5NzXpC8tdU", s:52, d:12, singer:"姜濤", title:"蒙著嘴說愛你", lyrics:"天給我🔴🔴🔴🔴 笑著去🔴🔴", ans:"天給我貧病困苦 笑著去吃苦"},
+            {id:"YZPFbnk_RS0", s:225, d:19, singer:"MC張天賦", title:"記憶棉", lyrics:"明天🔴🔴🔴🔴🔴要", ans:"明天見也最好不要"},
+            {id:"sg8V5BLMEhE", s:115, d:19, singer:"Dear Jane", title:"銀河修理員", lyrics:"這種🔴🔴非🔴🔴", ans:"這種堅壯非堅壯"},
+            {id:"qWhavDVsMRc", s:133, d:11, singer:"林家謙", title:"一人之境", lyrics:"沉默🔴🔴 期待🔴🔴🔴🔴", ans:"沉默看星 期待日光牽領"},
+            {id:"7FPL4DRizgk", s:188, d:13, singer:"Edan 呂爵安", title:"E先生連環不幸事件", lyrics:"漂亮過 燦🔴過 你或會🔴🔴 我🔴", ans:"漂亮過 燦爛過 你或會喜歡 我悶"},
+            {id:"Rp4iHpTvBY8", s:166, d:15, singer:"洪嘉豪", title:"黑玻璃", lyrics:"🔴🔴🔴🔴🔴🔴公開", ans:"接吻接到無法公開"},
+            {id:"vER4DPlhXXI", s:90, d:14, singer:"陳蕾", title:"凡星", lyrics:"成敗與否🔴🔴🔴🔴看 從來沒🔴🔴🔴🔴", ans:"成敗與否看我是怎麼看 從來沒標準答案"},
+            {id:"falq0Gr3rc0", s:161, d:16, singer:"Gareth.T", title:"用背脊唱情歌", lyrics:"流亡🔴🔴眼前🔴🔴 永恆在轉🔴🔴🔴🔴", ans:"流亡荒野眼前都有 永恆在轉那羣木馬"},
+            {id:"y9ntnHvD4tQ", s:135, d:19, singer:"張敬軒", title:"隱形遊樂場", lyrics:"糊塗🔴🔴🔴🔴 不需要🔴🔴🔴", ans:"糊塗地闖天地 不需要三幅被"},
+            {id:"jrP24ZSYHts", s:126, d:12, singer:"林家謙", title:"神奇的糊塗魔藥", lyrics:"等到🔴🔴那天 🔴🔴我會🔴🔴🔴🔴🔴", ans:"等到放晴的那天 也許我會比較好一點"},
+            {id:"DYptgVvkVLQ", s:104, d:15, singer:"周杰倫", title:"晴天", lyrics:"等到🔴🔴🔴🔴🔴 也許我會🔴🔴🔴🔴🔴", ans:"等到放晴的那天 也許我會比較好一點"},
+            {id:"bu7nU9Mhpyo", s:43, d:32, singer:"周杰倫", title:"告白氣球", lyrics:"親愛的🔴🔴🔴 你的🔴🔴 在說我🔴🔴", ans:"親愛的別任性 你的眼睛 在說我願意"},
+            {id:"T4SimnaiktU", s:65, d:18, singer:"G.E.M.", title:"光年之外", lyrics:"沒有🔴🔴🔴🔴🔴要", ans:"沒有你根本不重要"},
+            {id:"6aosRlnxg9I", s:129, d:24, singer:"任賢齊.", title:"對面的女孩看過來", lyrics:"原來🔴🔴🔴🔴🔴🔴🔴🔴", ans:"原來每個女孩都不簡單"},
+            {id:"GtDRcXtDg-4", s:89, d:20, singer:"五月天", title:"突然好想你", lyrics:"突然🔴🔴🔴🔴睛", ans:"突然模糊的眼睛"}
+        ];
+
+        let masterSongs = [...DEFAULT_SONGS];
+        let r2Topics = ["失戀會聽的歌", "關於落雨的歌", "充滿正能量的歌", "兵歌", "關於旅行的歌"];
+        let r3Keywords = ["歌詞有人體部位 (手/眼/咀...)", "關於顏色 (紅/黑/白...)", "歌詞有愛字", "關於時間 (秒/分/鐘)", "關於天氣 (晴/雨/雲)"];
+
+        let tempSongs = [], tempR2 = [], tempR3 = [];
+
+        function extractYoutubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = String(url).match(regExp);
+            return (match && match[2].length === 11) ? match[2] : url;
+        }
+
+        function showAdmin() {
+            tempSongs = JSON.parse(JSON.stringify(masterSongs));
+            tempR2 = [...r2Topics];
+            tempR3 = [...r3Keywords];
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('admin-screen').classList.add('active');
+            switchAdminTab(1);
+        }
+
+        function switchAdminTab(n) {
+            [1,2,3].forEach(i => {
+                document.getElementById('admin-tab-'+i).style.display = (i===n) ? 'block' : 'none';
+                document.getElementById('tab'+i).classList.remove('tab-active');
+            });
+            document.getElementById('tab'+n).classList.add('tab-active');
+            if(n===1) updateSongListUI();
+            if(n===2) updateTopicListUI();
+            if(n===3) updateKeyListUI();
+        }
+
+        function saveAndExit() {
+            if(confirm("Confirm: Save and apply all changes?")) {
+                masterSongs = JSON.parse(JSON.stringify(tempSongs));
+                r2Topics = [...tempR2]; r3Keywords = [...tempR3];
+                goHome();
+            }
+        }
+
+        function discardAndExit() {
+            if(confirm("Discard all changes?")) goHome();
+        }
+
+        // Round 1 Admin Tools
+        function updateSongListUI() {
+            const listDiv = document.getElementById('song-list-display');
+            document.getElementById('song-count').innerText = tempSongs.length;
+            listDiv.innerHTML = tempSongs.map((song, i) => `
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid #222; padding:8px 0; align-items:center;">
+                    <div style="flex:1; color:#aaa; font-size:10px;">${i+1}. ${song.title} (${song.d}s)</div>
+                    <div style="display:flex; gap:8px;">
+                        <button onclick="testSnippet(${i})" style="color:var(--actuary-blue); background:none; font-size:10px;">TEST</button>
+                        <button onclick="loadSongForEdit(${i})" style="color:var(--pricing-pink); background:none; font-size:10px;">EDIT</button>
+                        <button onclick="tempSongs.splice(${i},1); updateSongListUI();" style="color:red; background:none; font-size:10px;">✕</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function testSnippet(i) {
+            const s = tempSongs[i];
+            if(adminPlayer) adminPlayer.destroy();
+            adminPlayer = new YT.Player('admin-player', {
+                height: '0', width: '0', videoId: s.id,
+                playerVars: { 'autoplay': 1, 'start': s.s },
+                events: { 'onReady': (e) => { 
+                    setTimeout(() => { e.target.stopVideo(); }, s.d * 1000);
+                }}
+            });
+        }
+
+        function loadSongForEdit(i) {
+            editIndex = i; const s = tempSongs[i];
+            document.getElementById('in-id').value = s.id;
+            document.getElementById('in-start').value = s.s;
+            document.getElementById('in-dur').value = s.d;
+            document.getElementById('in-singer').value = s.singer;
+            document.getElementById('in-title').value = s.title;
+            document.getElementById('in-lyrics').value = s.lyrics;
+            document.getElementById('in-ans').value = s.ans;
+            document.getElementById('btn-add-song').innerText = "UPDATE SONG";
+            document.getElementById('btn-cancel-edit').style.display = "block";
+        }
+
+        function cancelEdit() {
+            editIndex = -1;
+            ['in-id','in-start','in-dur','in-singer','in-title','in-lyrics','in-ans'].forEach(id => document.getElementById(id).value = "");
+            document.getElementById('btn-add-song').innerText = "ADD TO LIST";
+            document.getElementById('btn-cancel-edit').style.display = "none";
+        }
+
+        function addOrUpdateSong() {
+            const data = {
+                id: extractYoutubeId(document.getElementById('in-id').value),
+                s: parseInt(document.getElementById('in-start').value) || 0,
+                d: parseInt(document.getElementById('in-dur').value) || 15,
+                singer: document.getElementById('in-singer').value || "Unknown",
+                title: document.getElementById('in-title').value || "New Song",
+                lyrics: document.getElementById('in-lyrics').value || "🔴🔴🔴🔴",
+                ans: document.getElementById('in-ans').value || "..."
+            };
+            if(!data.id) return alert("Link/ID required");
+            if(editIndex > -1) tempSongs[editIndex] = data; else tempSongs.push(data);
+            cancelEdit(); updateSongListUI();
+        }
+
+        // List Management R2/R3
+        function updateTopicListUI() { document.getElementById('topic-list-display').innerHTML = tempR2.map((t, i) => `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #222;"><span>${t}</span><button onclick="tempR2.splice(${i},1); updateTopicListUI();" style="color:red; background:none;">✕</button></div>`).join(''); }
+        function addCustomTopic() { const v = document.getElementById('in-topic').value; if(v){tempR2.push(v); document.getElementById('in-topic').value=""; updateTopicListUI();} }
+        function updateKeyListUI() { document.getElementById('key-list-display').innerHTML = tempR3.map((t, i) => `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #222;"><span>${t}</span><button onclick="tempR3.splice(${i},1); updateKeyListUI();" style="color:red; background:none;">✕</button></div>`).join(''); }
+        function addCustomKeyword() { const v = document.getElementById('in-key').value; if(v){tempR3.push(v); document.getElementById('in-key').value=""; updateKeyListUI();} }
+
+        // Game Core
+        function showRules(r) {
+            currentRound = r; document.getElementById('home-screen').classList.remove('active'); document.getElementById('rules-overlay').classList.add('active');
+            const rules = ["", "1. 聽歌猜歌手/歌名/下一句歌詞<br>2. 每項得 1 分", "1. 兩隊輪流唱出符合主題的歌<br>2. 10秒內接不到則輸", "1. 歌詞中必須包含關鍵字<br>2. 10秒內接不到則輸"];
+            document.getElementById('rule-title').innerText = "Round " + r; document.getElementById('rule-content').innerHTML = rules[r];
+        }
+
+        function startGame() {
+            document.getElementById('rules-overlay').classList.remove('active'); document.getElementById('game-ui').style.display = 'block';
+            if(currentRound === 1) { document.getElementById('round1-content').style.display = 'block'; document.getElementById('generic-content').style.display = 'none'; shuffle(masterSongs); idx = 0; loadVideo(); }
+            else { document.getElementById('round1-content').style.display = 'none'; document.getElementById('generic-content').style.display = 'block'; topicIdx = 0; updateTopicDisplay(); }
+        }
+
+        function goHome() { if(player) player.pauseVideo(); if(adminPlayer) adminPlayer.stopVideo(); clearInterval(logicInt); document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById('home-screen').classList.add('active'); document.getElementById('game-ui').style.display = 'none'; }
+
+        // Round 1 Player
+        function loadVideo() {
+            if(player) player.destroy();
+            document.getElementById('black-shield').style.display = 'flex'; 
+            player = new YT.Player('player-target', { height: '100%', width: '100%', videoId: masterSongs[idx].id, playerVars: { 'autoplay': 0, 'controls': 0, 'playsinline': 1, 'start': masterSongs[idx].s },
+                events: { 'onReady': (e) => { e.target.mute(); e.target.playVideo(); setTimeout(() => { e.target.pauseVideo(); e.target.unMute(); document.getElementById('status-msg').innerText = "Ready!"; }, 800); }}
+            });
+        }
+
+        function syncStart() {
+            player.seekTo(masterSongs[idx].s, true); player.playVideo(); document.getElementById('status-msg').innerText = "PLAYING..."; document.getElementById('blanks').style.display = 'none';
+            let elapsed = 0; let duration = masterSongs[idx].d; clearInterval(logicInt);
+            logicInt = setInterval(() => { elapsed++; let rem = duration - elapsed; if(rem <= 5 && rem > 0) { document.getElementById('timer').innerText = rem; document.getElementById('timer').classList.add('danger'); } if(elapsed >= duration) { clearInterval(logicInt); finishClip(); }}, 1000);
+        }
+
+        function finishClip() { player.pauseVideo(); document.getElementById('timer').innerText = "STOP"; document.getElementById('timer').classList.remove('danger'); document.getElementById('status-msg').innerText = "請作答"; document.getElementById('red-dots-line').innerText = masterSongs[idx].lyrics; document.getElementById('blanks').style.display = 'block'; }
+
+        function rev(type) {
+            const prefix = {singer: '歌手: ', title: '歌名: ', lyrics: ''}; const val = type === 'lyrics' ? masterSongs[idx].ans : masterSongs[idx][type];
+            document.getElementById('box-' + type).innerText = prefix[type] + val; document.getElementById('box-' + type).style.visibility = 'visible';
+            if(type === 'lyrics') { document.getElementById('black-shield').style.display = 'none'; player.playVideo(); }
+        }
+
+        function nextSong() { idx++; if(idx >= masterSongs.length) { alert("Done!"); return goHome(); } document.getElementById('blanks').style.display = 'none'; ['singer','title','lyrics'].forEach(t => document.getElementById('box-'+t).style.visibility='hidden'); document.getElementById('timer').innerText = "VS"; loadVideo(); }
+
+        // Helpers
+        function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } }
+        function changeScore(id, amt) { let el = document.getElementById(id); let s = parseInt(el.innerText) + amt; el.innerText = s < 0 ? 0 : s; }
+        function stopSong() { if(player) player.pauseVideo(); clearInterval(logicInt); }
+        function replayLast() { if(player) { player.seekTo(masterSongs[idx].s + masterSongs[idx].d - 5); player.playVideo(); setTimeout(()=>player.pauseVideo(), 5000); } }
+        function updateTopicDisplay() { const list = (currentRound === 2) ? r2Topics : r3Keywords; document.getElementById('topic-text').innerText = (currentRound === 2 ? "主題：" : "關鍵字：") + list[topicIdx]; document.getElementById('timer-display').innerText = "10"; }
+        function start10sTimer() { let count = 10; document.getElementById('timer-display').innerText = count; clearInterval(logicInt); logicInt = setInterval(() => { count--; document.getElementById('timer-display').innerText = count; if(count <= 0) { clearInterval(logicInt); document.getElementById('timer-display').innerText = "OUT"; }}, 1000); }
+        function nextTopic() { const list = (currentRound === 2) ? r2Topics : r3Keywords; topicIdx = (topicIdx + 1) % list.length; updateTopicDisplay(); clearInterval(logicInt); }
+        function resetToDefault() { if(confirm("Reset everything to default?")) { tempSongs = [...DEFAULT_SONGS]; updateSongListUI(); } }
+        function exportPlaylist() { const data = JSON.stringify({songs: tempSongs, r2: tempR2, r3: tempR3}); const blob = new Blob([data], {type: "text/plain"}); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "backup.txt"; a.click(); }
+        function triggerImport() { document.getElementById('import-file').click(); }
+        function importPlaylist(e) { const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = (ev) => { try { const d = JSON.parse(ev.target.result); if(d.songs) tempSongs = d.songs; if(d.r2) tempR2 = d.r2; if(d.r3) tempR3 = d.r3; updateSongListUI(); alert("Success"); } catch(e){ alert("Error"); }}; reader.readAsText(file); }
+        function onYouTubeIframeAPIReady() {}
+    </script>
+</body>
+</html>
