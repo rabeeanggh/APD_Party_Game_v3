@@ -40,6 +40,9 @@
         
         .small-round-btn { padding: 6px 12px; font-size: 13px; border-radius: 6px; margin: 4px; }
         .back-btn-r1 { background: #444; color: white; width: 100%; padding: 10px; border-radius: 12px; margin-top: 10px; font-size: 14px; }
+        
+        /* Progress Counter Style */
+        .progress-text { font-size: 13px; color: #777; margin: 15px 0 5px 0; font-weight: bold; font-family: monospace; }
 
         /* Creator Studio Styles */
         .admin-input { width: 96%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: 1px solid #333; background: #222; color: white; font-size: 14px; }
@@ -177,7 +180,10 @@
                 <div id="box-singer" class="ans-box">歌手: ---</div>
                 <div id="box-title" class="ans-box">歌名: ---</div>
                 <div id="box-lyrics" class="ans-box"></div>
-                <button class="main-btn" style="background:#000; margin-top:15px;" onclick="nextSong()">NEXT SONG ➔</button>
+                
+                <div id="song-progress" class="progress-text">SONG 1 OF 32</div>
+                
+                <button class="main-btn" style="background:#000; margin-top:0;" onclick="nextSong()">NEXT SONG ➔</button>
                 <button class="back-btn-r1" onclick="goHome()">BACK TO MENU</button>
             </div>
         </div>
@@ -331,10 +337,7 @@
             currentRound = r; 
             document.getElementById('home-screen').classList.remove('active'); 
             document.getElementById('rules-overlay').classList.add('active');
-            
-            let title = "";
-            let content = "";
-            
+            let title = ""; let content = "";
             if (r === 1) {
                 title = "Round 1 : 估歌仔";
                 content = "1. 聽 10-20 秒歌曲片段<br>2. 猜出歌手、歌名、下一句歌詞<br>3. 每中一項得 1 分";
@@ -345,7 +348,6 @@
                 title = "Round 3 : 唱 Keywords";
                 content = "1. 抽出一個指定的關鍵字<br>2. 兩隊輪流唱出包含該字的歌<br>3. 必須唱出最少一句歌詞<br>4. 10秒內接不到則輸";
             }
-            
             document.getElementById('rule-title').innerText = title; 
             document.getElementById('rule-content').innerHTML = content;
         }
@@ -356,12 +358,16 @@
             if(currentRound === 1) { 
                 document.getElementById('round1-content').style.display = 'block'; 
                 document.getElementById('generic-content').style.display = 'none'; 
-                shuffle(masterSongs); idx = 0; loadVideo(); 
+                shuffle(masterSongs); idx = 0; updateSongProgress(); loadVideo(); 
             } else { 
                 document.getElementById('round1-content').style.display = 'none'; 
                 document.getElementById('generic-content').style.display = 'block'; 
                 topicIdx = 0; updateTopicDisplay(); 
             }
+        }
+
+        function updateSongProgress() {
+            document.getElementById('song-progress').innerText = `SONG ${idx + 1} OF ${masterSongs.length}`;
         }
 
         function goHome() { 
@@ -393,7 +399,15 @@
             if(type === 'lyrics') { document.getElementById('black-shield').style.display = 'none'; player.playVideo(); }
         }
 
-        function nextSong() { idx++; if(idx >= masterSongs.length) { alert("Done!"); return goHome(); } document.getElementById('blanks').style.display = 'none'; ['singer','title','lyrics'].forEach(t => document.getElementById('box-'+t).style.visibility='hidden'); document.getElementById('timer').innerText = "VS"; loadVideo(); }
+        function nextSong() { 
+            idx++; 
+            if(idx >= masterSongs.length) { alert("Done!"); return goHome(); } 
+            updateSongProgress();
+            document.getElementById('blanks').style.display = 'none'; 
+            ['singer','title','lyrics'].forEach(t => document.getElementById('box-'+t).style.visibility='hidden'); 
+            document.getElementById('timer').innerText = "VS"; 
+            loadVideo(); 
+        }
 
         function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } }
         function changeScore(id, amt) { let el = document.getElementById(id); let s = parseInt(el.innerText) + amt; el.innerText = s < 0 ? 0 : s; }
