@@ -46,7 +46,7 @@
         .home-card { background: #1a1a1a; padding: 25px; border-radius: 20px; border: 1px solid #333; margin: 15px auto; max-width: 350px; cursor: pointer; }
         .tab-btn { background: #333; color: #888; padding: 10px; flex: 1; border-radius: 0; font-size: 12px; border: 1px solid #444;}
         .tab-active { background: var(--actuary-blue); color: black; }
-        #admin-test-area { height: 0; overflow: hidden; } /* Hidden player for testing in admin */
+        #admin-test-area { height: 0; overflow: hidden; }
     </style>
 </head>
 <body>
@@ -132,7 +132,8 @@
         <div style="background:#1a1a1a; padding:30px; border-radius:20px; margin:20px auto; max-width:350px; border:2px solid var(--pricing-pink);">
             <h2 id="rule-title" style="color:var(--pricing-pink)">規則</h2>
             <div id="rule-content" style="text-align:left; line-height:1.8; color:#ccc; margin-bottom:25px; font-size: 15px;"></div>
-            <button class="main-btn" onclick="startGame()" style="background:var(--pricing-pink); border:2px solid white;">PRESS START</button>
+            <button class="main-btn" onclick="startGame()" style="background:var(--pricing-pink); border:2px solid white;">Start</button>
+            <button class="back-btn-r1" onclick="goHome()" style="background:transparent; border:1px solid #444; color:#888;">Back to Menu</button>
         </div>
     </div>
 
@@ -246,8 +247,7 @@
 
         function showAdmin() {
             tempSongs = JSON.parse(JSON.stringify(masterSongs));
-            tempR2 = [...r2Topics];
-            tempR3 = [...r3Keywords];
+            tempR2 = [...r2Topics]; tempR3 = [...r3Keywords];
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('admin-screen').classList.add('active');
             switchAdminTab(1);
@@ -272,17 +272,14 @@
             }
         }
 
-        function discardAndExit() {
-            if(confirm("Discard all changes?")) goHome();
-        }
+        function discardAndExit() { if(confirm("Discard all changes?")) goHome(); }
 
-        // Round 1 Admin Tools
         function updateSongListUI() {
             const listDiv = document.getElementById('song-list-display');
             document.getElementById('song-count').innerText = tempSongs.length;
             listDiv.innerHTML = tempSongs.map((song, i) => `
                 <div style="display:flex; justify-content:space-between; border-bottom:1px solid #222; padding:8px 0; align-items:center;">
-                    <div style="flex:1; color:#aaa; font-size:10px;">${i+1}. ${song.title} (${song.d}s)</div>
+                    <div style="flex:1; color:#aaa; font-size:10px;">${i+1}. ${song.title}</div>
                     <div style="display:flex; gap:8px;">
                         <button onclick="testSnippet(${i})" style="color:var(--actuary-blue); background:none; font-size:10px;">TEST</button>
                         <button onclick="loadSongForEdit(${i})" style="color:var(--pricing-pink); background:none; font-size:10px;">EDIT</button>
@@ -298,72 +295,85 @@
             adminPlayer = new YT.Player('admin-player', {
                 height: '0', width: '0', videoId: s.id,
                 playerVars: { 'autoplay': 1, 'start': s.s },
-                events: { 'onReady': (e) => { 
-                    setTimeout(() => { e.target.stopVideo(); }, s.d * 1000);
-                }}
+                events: { 'onReady': (e) => { setTimeout(() => { e.target.stopVideo(); }, s.d * 1000); }}
             });
         }
 
         function loadSongForEdit(i) {
             editIndex = i; const s = tempSongs[i];
-            document.getElementById('in-id').value = s.id;
-            document.getElementById('in-start').value = s.s;
-            document.getElementById('in-dur').value = s.d;
-            document.getElementById('in-singer').value = s.singer;
-            document.getElementById('in-title').value = s.title;
-            document.getElementById('in-lyrics').value = s.lyrics;
+            document.getElementById('in-id').value = s.id; document.getElementById('in-start').value = s.s;
+            document.getElementById('in-dur').value = s.d; document.getElementById('in-singer').value = s.singer;
+            document.getElementById('in-title').value = s.title; document.getElementById('in-lyrics').value = s.lyrics;
             document.getElementById('in-ans').value = s.ans;
             document.getElementById('btn-add-song').innerText = "UPDATE SONG";
             document.getElementById('btn-cancel-edit').style.display = "block";
         }
 
         function cancelEdit() {
-            editIndex = -1;
-            ['in-id','in-start','in-dur','in-singer','in-title','in-lyrics','in-ans'].forEach(id => document.getElementById(id).value = "");
+            editIndex = -1; ['in-id','in-start','in-dur','in-singer','in-title','in-lyrics','in-ans'].forEach(id => document.getElementById(id).value = "");
             document.getElementById('btn-add-song').innerText = "ADD TO LIST";
             document.getElementById('btn-cancel-edit').style.display = "none";
         }
 
         function addOrUpdateSong() {
-            const data = {
-                id: extractYoutubeId(document.getElementById('in-id').value),
-                s: parseInt(document.getElementById('in-start').value) || 0,
-                d: parseInt(document.getElementById('in-dur').value) || 15,
-                singer: document.getElementById('in-singer').value || "Unknown",
-                title: document.getElementById('in-title').value || "New Song",
-                lyrics: document.getElementById('in-lyrics').value || "🔴🔴🔴🔴",
-                ans: document.getElementById('in-ans').value || "..."
-            };
+            const data = { id: extractYoutubeId(document.getElementById('in-id').value), s: parseInt(document.getElementById('in-start').value) || 0, d: parseInt(document.getElementById('in-dur').value) || 15, singer: document.getElementById('in-singer').value || "Unknown", title: document.getElementById('in-title').value || "New Song", lyrics: document.getElementById('in-lyrics').value || "🔴🔴🔴🔴", ans: document.getElementById('in-ans').value || "..." };
             if(!data.id) return alert("Link/ID required");
             if(editIndex > -1) tempSongs[editIndex] = data; else tempSongs.push(data);
             cancelEdit(); updateSongListUI();
         }
 
-        // List Management R2/R3
         function updateTopicListUI() { document.getElementById('topic-list-display').innerHTML = tempR2.map((t, i) => `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #222;"><span>${t}</span><button onclick="tempR2.splice(${i},1); updateTopicListUI();" style="color:red; background:none;">✕</button></div>`).join(''); }
         function addCustomTopic() { const v = document.getElementById('in-topic').value; if(v){tempR2.push(v); document.getElementById('in-topic').value=""; updateTopicListUI();} }
         function updateKeyListUI() { document.getElementById('key-list-display').innerHTML = tempR3.map((t, i) => `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #222;"><span>${t}</span><button onclick="tempR3.splice(${i},1); updateKeyListUI();" style="color:red; background:none;">✕</button></div>`).join(''); }
         function addCustomKeyword() { const v = document.getElementById('in-key').value; if(v){tempR3.push(v); document.getElementById('in-key').value=""; updateKeyListUI();} }
 
-        // Game Core
         function showRules(r) {
-            currentRound = r; document.getElementById('home-screen').classList.remove('active'); document.getElementById('rules-overlay').classList.add('active');
-            const rules = ["", "1. 聽歌猜歌手/歌名/下一句歌詞<br>2. 每項得 1 分", "1. 兩隊輪流唱出符合主題的歌<br>2. 10秒內接不到則輸", "1. 歌詞中必須包含關鍵字<br>2. 10秒內接不到則輸"];
-            document.getElementById('rule-title').innerText = "Round " + r; document.getElementById('rule-content').innerHTML = rules[r];
+            currentRound = r; 
+            document.getElementById('home-screen').classList.remove('active'); 
+            document.getElementById('rules-overlay').classList.add('active');
+            
+            let title = "";
+            let content = "";
+            
+            if (r === 1) {
+                title = "Round 1 : 估歌仔";
+                content = "1. 聽 10-20 秒歌曲片段<br>2. 猜出歌手、歌名、下一句歌詞<br>3. 每中一項得 1 分";
+            } else if (r === 2) {
+                title = "Round 2 : 情境題";
+                content = "1. 抽出一個情境主題<br>2. 兩隊輪流唱出符合主題的歌<br>3. 必須唱出最少一句歌詞<br>4. 10秒內接不到則輸";
+            } else if (r === 3) {
+                title = "Round 3 : 唱 Keywords";
+                content = "1. 抽出一個指定的關鍵字<br>2. 兩隊輪流唱出包含該字的歌<br>3. 必須唱出最少一句歌詞<br>4. 10秒內接不到則輸";
+            }
+            
+            document.getElementById('rule-title').innerText = title; 
+            document.getElementById('rule-content').innerHTML = content;
         }
 
         function startGame() {
-            document.getElementById('rules-overlay').classList.remove('active'); document.getElementById('game-ui').style.display = 'block';
-            if(currentRound === 1) { document.getElementById('round1-content').style.display = 'block'; document.getElementById('generic-content').style.display = 'none'; shuffle(masterSongs); idx = 0; loadVideo(); }
-            else { document.getElementById('round1-content').style.display = 'none'; document.getElementById('generic-content').style.display = 'block'; topicIdx = 0; updateTopicDisplay(); }
+            document.getElementById('rules-overlay').classList.remove('active'); 
+            document.getElementById('game-ui').style.display = 'block';
+            if(currentRound === 1) { 
+                document.getElementById('round1-content').style.display = 'block'; 
+                document.getElementById('generic-content').style.display = 'none'; 
+                shuffle(masterSongs); idx = 0; loadVideo(); 
+            } else { 
+                document.getElementById('round1-content').style.display = 'none'; 
+                document.getElementById('generic-content').style.display = 'block'; 
+                topicIdx = 0; updateTopicDisplay(); 
+            }
         }
 
-        function goHome() { if(player) player.pauseVideo(); if(adminPlayer) adminPlayer.stopVideo(); clearInterval(logicInt); document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById('home-screen').classList.add('active'); document.getElementById('game-ui').style.display = 'none'; }
+        function goHome() { 
+            if(player) player.pauseVideo(); if(adminPlayer) adminPlayer.stopVideo(); 
+            clearInterval(logicInt); 
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); 
+            document.getElementById('home-screen').classList.add('active'); 
+            document.getElementById('game-ui').style.display = 'none'; 
+        }
 
-        // Round 1 Player
         function loadVideo() {
-            if(player) player.destroy();
-            document.getElementById('black-shield').style.display = 'flex'; 
+            if(player) player.destroy(); document.getElementById('black-shield').style.display = 'flex'; 
             player = new YT.Player('player-target', { height: '100%', width: '100%', videoId: masterSongs[idx].id, playerVars: { 'autoplay': 0, 'controls': 0, 'playsinline': 1, 'start': masterSongs[idx].s },
                 events: { 'onReady': (e) => { e.target.mute(); e.target.playVideo(); setTimeout(() => { e.target.pauseVideo(); e.target.unMute(); document.getElementById('status-msg').innerText = "Ready!"; }, 800); }}
             });
@@ -385,7 +395,6 @@
 
         function nextSong() { idx++; if(idx >= masterSongs.length) { alert("Done!"); return goHome(); } document.getElementById('blanks').style.display = 'none'; ['singer','title','lyrics'].forEach(t => document.getElementById('box-'+t).style.visibility='hidden'); document.getElementById('timer').innerText = "VS"; loadVideo(); }
 
-        // Helpers
         function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } }
         function changeScore(id, amt) { let el = document.getElementById(id); let s = parseInt(el.innerText) + amt; el.innerText = s < 0 ? 0 : s; }
         function stopSong() { if(player) player.pauseVideo(); clearInterval(logicInt); }
@@ -393,7 +402,7 @@
         function updateTopicDisplay() { const list = (currentRound === 2) ? r2Topics : r3Keywords; document.getElementById('topic-text').innerText = (currentRound === 2 ? "主題：" : "關鍵字：") + list[topicIdx]; document.getElementById('timer-display').innerText = "10"; }
         function start10sTimer() { let count = 10; document.getElementById('timer-display').innerText = count; clearInterval(logicInt); logicInt = setInterval(() => { count--; document.getElementById('timer-display').innerText = count; if(count <= 0) { clearInterval(logicInt); document.getElementById('timer-display').innerText = "OUT"; }}, 1000); }
         function nextTopic() { const list = (currentRound === 2) ? r2Topics : r3Keywords; topicIdx = (topicIdx + 1) % list.length; updateTopicDisplay(); clearInterval(logicInt); }
-        function resetToDefault() { if(confirm("Reset everything to default?")) { tempSongs = [...DEFAULT_SONGS]; updateSongListUI(); } }
+        function resetToDefault() { if(confirm("Reset everything?")) { tempSongs = [...DEFAULT_SONGS]; updateSongListUI(); } }
         function exportPlaylist() { const data = JSON.stringify({songs: tempSongs, r2: tempR2, r3: tempR3}); const blob = new Blob([data], {type: "text/plain"}); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "backup.txt"; a.click(); }
         function triggerImport() { document.getElementById('import-file').click(); }
         function importPlaylist(e) { const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = (ev) => { try { const d = JSON.parse(ev.target.result); if(d.songs) tempSongs = d.songs; if(d.r2) tempR2 = d.r2; if(d.r3) tempR3 = d.r3; updateSongListUI(); alert("Success"); } catch(e){ alert("Error"); }}; reader.readAsText(file); }
