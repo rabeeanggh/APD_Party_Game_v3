@@ -41,10 +41,8 @@
         .small-round-btn { padding: 6px 12px; font-size: 13px; border-radius: 6px; margin: 4px; }
         .back-btn-r1 { background: #444; color: white; width: 100%; padding: 10px; border-radius: 12px; margin-top: 10px; font-size: 14px; }
         
-        /* Progress Counter Style */
         .progress-text { font-size: 13px; color: #777; margin: 15px 0 5px 0; font-weight: bold; font-family: monospace; }
 
-        /* Creator Studio Styles */
         .admin-input { width: 96%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: 1px solid #333; background: #222; color: white; font-size: 14px; }
         .home-card { background: #1a1a1a; padding: 25px; border-radius: 20px; border: 1px solid #333; margin: 15px auto; max-width: 350px; cursor: pointer; }
         .tab-btn { background: #333; color: #888; padding: 10px; flex: 1; border-radius: 0; font-size: 12px; border: 1px solid #444;}
@@ -68,13 +66,11 @@
         <div id="admin-test-area"><div id="admin-player"></div></div>
         <div style="background:#1a1a1a; padding:15px; border-radius:20px; margin:5px auto; max-width:420px; border:2px solid var(--actuary-blue); min-height: 85vh;">
             <h2 style="color:var(--actuary-blue); margin-bottom:10px;">Creator Studio</h2>
-            
             <div style="display:flex; margin-bottom:15px; border-radius:10px; overflow:hidden;">
                 <button id="tab1" class="tab-btn tab-active" onclick="switchAdminTab(1)">R1: Songs</button>
                 <button id="tab2" class="tab-btn" onclick="switchAdminTab(2)">R2: Topics</button>
                 <button id="tab3" class="tab-btn" onclick="switchAdminTab(3)">R3: Keys</button>
             </div>
-
             <div id="admin-tab-1">
                 <div style="text-align: left; background:#252525; padding:10px; border-radius:10px; margin-bottom:15px;">
                     <h4 style="color:var(--pricing-pink); margin-top:0;">Song Data Editor</h4>
@@ -89,7 +85,6 @@
                     </div>
                     <input id="in-lyrics" class="admin-input" placeholder="Next Line (use 🔴🔴)">
                     <input id="in-ans" class="admin-input" placeholder="Full Answer Line">
-                    
                     <div style="display:flex; gap:5px;">
                         <button id="btn-add-song" class="main-btn" style="background:var(--pricing-pink); font-size:14px; padding:10px;" onclick="addOrUpdateSong()">ADD TO LIST</button>
                         <button id="btn-cancel-edit" class="main-btn" style="background:#555; font-size:14px; padding:10px; display:none;" onclick="cancelEdit()">CANCEL</button>
@@ -98,7 +93,6 @@
                 <h4 style="color:#666; margin:5px 0;">Session Playlist (<span id="song-count">0</span>)</h4>
                 <div id="song-list-display" style="text-align:left; font-size:11px; background:#000; padding:10px; border-radius:10px; max-height:220px; overflow-y:auto;"></div>
             </div>
-
             <div id="admin-tab-2" style="display:none;">
                 <h4 style="color:var(--pricing-pink)">R2 Topics</h4>
                 <div style="display:flex; gap:5px; margin-bottom:10px;">
@@ -107,7 +101,6 @@
                 </div>
                 <div id="topic-list-display" style="text-align:left; font-size:12px; background:#000; padding:10px; border-radius:10px; height:300px; overflow-y:auto;"></div>
             </div>
-
             <div id="admin-tab-3" style="display:none;">
                 <h4 style="color:var(--pricing-pink)">R3 Keywords</h4>
                 <div style="display:flex; gap:5px; margin-bottom:10px;">
@@ -116,14 +109,12 @@
                 </div>
                 <div id="key-list-display" style="text-align:left; font-size:12px; background:#000; padding:10px; border-radius:10px; height:300px; overflow-y:auto;"></div>
             </div>
-
             <div style="display:flex; gap:5px; margin-top:15px;">
                 <button class="small-round-btn" style="background:#800; color:white; flex:1;" onclick="resetToDefault()">RESET ALL</button>
                 <button class="small-round-btn" style="background:#444; color:white; flex:1;" onclick="exportPlaylist()">EXPORT</button>
                 <button class="small-round-btn" style="background:#444; color:white; flex:1;" onclick="triggerImport()">IMPORT</button>
                 <input type="file" id="import-file" style="display:none" onchange="importPlaylist(event)">
             </div>
-
             <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="back-btn-r1" style="background:#28a745; flex:2;" onclick="saveAndExit()">SAVE & APPLY</button>
                 <button class="back-btn-r1" style="background:#c0392b; flex:1;" onclick="discardAndExit()">DISCARD</button>
@@ -180,9 +171,7 @@
                 <div id="box-singer" class="ans-box">歌手: ---</div>
                 <div id="box-title" class="ans-box">歌名: ---</div>
                 <div id="box-lyrics" class="ans-box"></div>
-                
                 <div id="song-progress" class="progress-text">SONG 1 OF 32</div>
-                
                 <button class="main-btn" style="background:#000; margin-top:0;" onclick="nextSong()">NEXT SONG ➔</button>
                 <button class="back-btn-r1" onclick="goHome()">BACK TO MENU</button>
             </div>
@@ -213,7 +202,7 @@
             {id:"cPKfUWDmNbo", s:62, d:21, singer:"Twins", title:"下一站天后", lyrics:"難及🔴🔴🔴🔴耳邊 🔴🔴🔴🔴地唱", ans:"難及給最愛最耳邊 低聲温柔地唱"},
             {id:"onZjMJq4LhU", s:98, d:20, singer:"容祖兒", title:"我的驕傲", lyrics:"因你🔴🔴 🔴🔴🔴", ans:"因你創更愉快"},
             {id:"v04DzjzSb5w", s:64, d:14, singer:"盧巧音", title:"好心分手", lyrics:"若注定🔴🔴🔴🔴🔴 不如🔴🔴🔴🔴割破", ans:"若注定有一點苦楚 不如自己親手割破"},
-            {id:"qu_FSptjRic", s:68, d:20, singer:"Beyond", title:"海闊天空", lyrics:"哪🔴🔴🔴🔴🔴你🔴🔴我", ans:"哪會怕有一天只你共我"},
+            {id:"qu_FSptjRic", s:68, d:20, singer:"Beyond", title:"海闊天空", lyrics:"哪🔴🔴🔴🔴🔴你🔴🔴過", ans:"哪會怕有一天只你共我"},
             {id:"8dqdPHuFgfI", s:147, d:14, singer:"蘇永康", title:"越吻越傷心", lyrics:"何必🔴🔴 🔴🔴", ans:"何必追問遠近"},
             {id:"JNocLV9gXuw", s:66, d:18, singer:"周國賢", title:"地下街", lyrics:"🔴🔴街裡🔴🔴", ans:"地底街裡失蹤"},
             {id:"UlkToY0QfaU", s:38, d:20, singer:"麥浚龍", title:"有人", lyrics:"如🔴🔴🔴🔴🔴🔴到", ans:"如沒有信心接受到"},
@@ -226,12 +215,12 @@
             {id:"YZPFbnk_RS0", s:225, d:17, singer:"MC張天賦", title:"記憶棉", lyrics:"明天🔴🔴🔴🔴🔴要", ans:"明天見也最好不要"},
             {id:"sg8V5BLMEhE", s:115, d:19, singer:"Dear Jane", title:"銀河修理員", lyrics:"這種🔴🔴非🔴🔴", ans:"這種堅壯非堅壯"},
             {id:"qWhavDVsMRc", s:133, d:10, singer:"林家謙", title:"一人之境", lyrics:"沉默🔴🔴 期待🔴🔴🔴🔴", ans:"沉默看星 期待日光牽領"},
-            {id:"7FPL4DRizgk", s:188, d:18, singer:"Edan 呂爵安", title:"E先生連環不幸事件", lyrics:"八十歲 到病榻 🔴🔴 我也算是 笑着🔴🔴”, ans:"八十歲 到病榻 相伴 我也算是 笑着蓋棺"},
+            {id:"7FPL4DRizgk", s:188, d:18, singer:"Edan 呂爵安", title:"E先生連環不幸事件", lyrics:"八十歲 到病榻 🔴🔴 我也算是 笑着🔴🔴", ans:"八十歲 到病榻 相伴 我也算是 笑着蓋棺"},
             {id:"Rp4iHpTvBY8", s:166, d:15, singer:"洪嘉豪", title:"黑玻璃", lyrics:"🔴🔴🔴🔴🔴🔴公開", ans:"接吻接到無法公開"},
             {id:"vER4DPlhXXI", s:90, d:24, singer:"陳蕾", title:"凡星", lyrics:"重拾🔴🔴讓我做🔴🔴🔴🔴", ans:"重拾自信讓我做我的主角"},
-            {id:"falq0Gr3rc0", s:161, d:16, singer:"Gareth.T", title:"用背脊唱情歌", lyrics:"我尚在如此🔴🔴🔴 唱着🔴🔴🔴🔴", ans:"我尚在如此不知醜 唱着別離開我”},
+            {id:"falq0Gr3rc0", s:161, d:16, singer:"Gareth.T", title:"用背脊唱情歌", lyrics:"我尚在如此🔴🔴🔴 唱着🔴🔴🔴🔴", ans:"我尚在如此不知醜 唱着別離開我"},
             {id:"y9ntnHvD4tQ", s:135, d:19, singer:"張敬軒", title:"隱形遊樂場", lyrics:"流亡🔴🔴眼前🔴🔴 永恆在轉🔴🔴🔴🔴", ans:"流亡荒野眼前都有 永恆在轉那羣木馬"},
-            {id:"jrP24ZSYHts", s:126, d:12, singer:"林家謙", title:"神奇的糊塗魔藥", lyrics:"糊塗🔴🔴🔴🔴 不需要🔴🔴🔴", ans:"糊塗地闖天地 不需要三福被"},
+            {id:"jrP24ZSYHts", s:126, d:12, singer:"林家謙", title:"神奇的糊塗魔藥", lyrics:"糊塗🔴🔴🔴🔴 不需要🔴🔴🔴", ans:"糊塗地闖天地 不需要三幅被"},
             {id:"DYptgVvkVLQ", s:104, d:15, singer:"周杰倫", title:"晴天", lyrics:"等到🔴🔴🔴🔴🔴 也許我會🔴🔴🔴🔴🔴", ans:"等到放晴的那天 也許我會比較好一點"},
             {id:"bu7nU9Mhpyo", s:43, d:34, singer:"周杰倫", title:"告白氣球", lyrics:"親愛的🔴🔴🔴 你的🔴🔴 在說我🔴🔴", ans:"親愛的別任性 你的眼睛 在說我願意"},
             {id:"T4SimnaiktU", s:65, d:18, singer:"G.E.M.", title:"光年之外", lyrics:"沒有🔴🔴🔴🔴🔴要", ans:"沒有你根本不重要"},
